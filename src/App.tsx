@@ -1,7 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import ContactList from './components/ContactList';
 import AddContact from './components/AddContact';
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
@@ -23,8 +23,9 @@ function App() {
       <div className="App">
         <h1 css={titleStyle}>Sendiawan Muljono's Phone Book</h1>
         <Routes>
-          <Route path="/add" element={<AddContact />} />
-          <Route path="/" element={<ContactList />} />
+          <Route path="/phone-book-sendiawan-muljono/add" element={<AddContact />} />
+          <Route path="/phone-book-sendiawan-muljono" element={<ContactList />} />
+          <Route path="/" element={<Navigate to="/phone-book-sendiawan-muljono" />} />
         </Routes>
       </div>
     </Router>

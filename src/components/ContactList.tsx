@@ -343,7 +343,7 @@ function ContactList() {
         </div>
       )}
 
-      <Link to="/add" css={addButtonStyle}>
+      <Link to="/phone-book-sendiawan-muljono/add" css={addButtonStyle}>
         <FontAwesomeIcon icon={faPlus} /> Add
       </Link>
     </div>

@@ -376,7 +376,7 @@ function AddContact() {
   return (
     <div css={containerStyle}>
       <div css={formContainerStyle}>
-        <Link to="/">
+        <Link to="/phone-book-sendiawan-muljono">
           <FontAwesomeIcon
             icon={faArrowLeft}
             css={arrowStyle}
