@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/phone-book-sendiawan-muljono/static/css/main.073c9b0a.css",
+    "main.js": "/phone-book-sendiawan-muljono/static/js/main.fef42e62.js",
+    "static/js/787.7cd5b885.chunk.js": "/phone-book-sendiawan-muljono/static/js/787.7cd5b885.chunk.js",
+    "index.html": "/phone-book-sendiawan-muljono/index.html",
+    "main.073c9b0a.css.map": "/phone-book-sendiawan-muljono/static/css/main.073c9b0a.css.map",
+    "main.fef42e62.js.map": "/phone-book-sendiawan-muljono/static/js/main.fef42e62.js.map",
+    "787.7cd5b885.chunk.js.map": "/phone-book-sendiawan-muljono/static/js/787.7cd5b885.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.fef42e62.js"
+  ]
+}
