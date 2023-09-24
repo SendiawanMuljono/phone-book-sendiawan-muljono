@@ -1,6 +1,8 @@
 # Phone Book App - Sendiawan Muljono
 Deployed application: https://sendiawanmuljono.github.io/phone-book-sendiawan-muljono/
-Note: since it is instructed that UI/UX should be **mobile-first**, then you may try it by pressing F12 and choose the dimension of mobile phones as you prefer
+
+1st Note: since it is instructed that UI/UX should be **mobile-first**, then you may try it by pressing F12 and choose the dimension of mobile phones as you prefer
+2nd Note: favorite feature is a bit bugged, so if you want to test out features without any bugs then do not use favorite feature
 
 Tasks checklist:
 1) Contact list (DONE)
