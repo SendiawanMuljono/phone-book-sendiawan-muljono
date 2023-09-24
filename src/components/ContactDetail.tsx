@@ -310,7 +310,6 @@ function ContactDetail() {
   const handleSaveButtonClick = async () => {
     if (!isSaveButtonDisabled) {
       try {
-        // Edit contact first name and last name
         const editContactResponse = await editContact({
           variables: {
             id: parseInt(id || '0'),
