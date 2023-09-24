@@ -2,12 +2,14 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import { css } from '@emotion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlus, faCircleXmark, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { useApolloClient, useMutation } from '@apollo/client';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { useApolloClient, useMutation, useQuery } from '@apollo/client';
 import { GetContactList } from '../graphql/queries/get-contact-list';
 import { GetPhoneList } from '../graphql/queries/get-phone-list';
-import { AddContactWithPhones } from "../graphql/mutations/add-contact-with-phones";
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { GetContactDetail } from '../graphql/queries/get-contact-detail';
+import { EditContactById } from '../graphql/mutations/edit-contact-by-id';
+import { EditPhoneNumber } from '../graphql/mutations/edit-phone-number';
 
 const containerStyle = css`
   display: flex;
@@ -85,38 +87,6 @@ const errorStyle = css`
   color: #EF144A;
 `;
 
-const addMorePhoneNumberStyle = css`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  background-color: #97f0aa;
-  transition: background-color 0.3s;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #77ed90;
-  }
-`;
-
-const addMorePhoneNumberIconStyle = css`
-  color: #0bd637;
-  width: 25px;
-  height: 25px;
-`;
-
-const deleteIconStyle = css`
-  color: #cf0830;
-  cursor: pointer;
-  transition: color 0.3s;
-
-  &:hover {
-    color: #910924;
-  }
-`;
-
 const popUpMessageStyle = css`
   position: fixed;
   bottom: 80px;
@@ -163,20 +133,36 @@ const disabledSaveButtonStyle = css`
   cursor: not-allowed;
 `;
 
-function AddContact() {
+function ContactDetail() {
   const [firstName, setFirstName] = useState('');
   const [firstNameTouched, setFirstNameTouched] = useState(false);
   const [lastName, setLastName] = useState('');
   const [lastNameTouched, setLastNameTouched] = useState(false);
+  const [oldPhoneNumbers, setOldPhoneNumbers] = useState(['']);
   const [phoneNumbers, setPhoneNumbers] = useState(['']);
   const [phoneNumbersTouched, setPhoneNumbersTouched] = useState(Array(phoneNumbers.length).fill(false));
   const [fieldErrors, setFieldErrors] = useState({
     firstName: '',
     lastName: '',
-    phoneNumbers: [''],
+    phoneNumbers: ['']
+  });
+  const client = useApolloClient();
+
+  const { id } = useParams();
+  const { loading, error, data } = useQuery(GetContactDetail, {
+    variables: { id: parseInt(id || '0') }
   });
 
-  const client = useApolloClient();
+  useEffect(() => {
+    if (!loading && data && data.contact_by_pk) {
+      const contactData = data.contact_by_pk;
+      setFirstName(contactData.first_name);
+      setLastName(contactData.last_name);
+      setOldPhoneNumbers(contactData.phones.map((phone: { number: string }) => phone.number));
+      setPhoneNumbers(contactData.phones.map((phone: { number: string }) => phone.number));
+    }
+  }, [loading, data]);
+
   const checkContactNameUniqueness = () => {
     return client.query({
       query: GetContactList,
@@ -280,16 +266,23 @@ function AddContact() {
     validatePhoneNumbers();
   }, [firstName, lastName, phoneNumbers]);
 
+  const setAllFieldsTouched = () => {
+    setFirstNameTouched(true);
+    setLastNameTouched(true);
+    const updatedPhoneNumbersTouched = Array(phoneNumbers.length).fill(true);
+    setPhoneNumbersTouched(updatedPhoneNumbersTouched);
+  };
+
   const handleFirstNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFirstName(value);
-    setFirstNameTouched(true);
+    setAllFieldsTouched();
   };
 
   const handleLastNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLastName(value);
-    setLastNameTouched(true);
+    setAllFieldsTouched();
   };
 
   const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>, index: number) => {
@@ -298,24 +291,7 @@ function AddContact() {
     updatedPhoneNumbers[index] = value;
     setPhoneNumbers(updatedPhoneNumbers);
 
-    const updatedPhoneNumbersTouched = [...phoneNumbersTouched];
-    updatedPhoneNumbersTouched[index] = true;
-    setPhoneNumbersTouched(updatedPhoneNumbersTouched);
-  };
-
-  const addPhoneNumberInput = () => {
-    setPhoneNumbers([...phoneNumbers, '']);
-  };
-
-  const [showDeleteInputMessage, setShowDeleteInputMessage] = useState(false);
-  const removePhoneNumberInput = (index: number) => {
-    setShowDeleteInputMessage(true);
-    setTimeout(() => {
-      setShowDeleteInputMessage(false);
-    }, 5000);
-    const updatedPhoneNumbers = [...phoneNumbers];
-    updatedPhoneNumbers.splice(index, 1);
-    setPhoneNumbers(updatedPhoneNumbers);
+    setAllFieldsTouched();
   };
 
   const hasErrors = Object.values(fieldErrors).some(value => {
@@ -325,46 +301,67 @@ function AddContact() {
     return value !== '';
   });
 
-  const isSaveButtonDisabled = hasErrors || (!firstName || !lastName || phoneNumbers.some(number => !number));
+  const isSaveButtonDisabled = hasErrors || (!firstName || !lastName || phoneNumbers.some(number => !number)) || !firstNameTouched;
 
-  const [showSuccessAddMessage, setShowSuccessAddMessage] = useState(false);
+  const [showSuccessEditMessage, setShowSuccessEditMessage] = useState(false);
 
-  const [addContactWithPhones] = useMutation(AddContactWithPhones);
+  const [editContact] = useMutation(EditContactById);
+  const [editPhoneNumber] = useMutation(EditPhoneNumber);
   const handleSaveButtonClick = async () => {
-    if(!isSaveButtonDisabled){
+    if (!isSaveButtonDisabled) {
       try {
-        const variables = {
-          first_name: `${firstName}`,
-          last_name: `${lastName}`,
-          phones: phoneNumbers.map((phoneNumber) => ({ number: phoneNumber }))
-        };
-    
-        const response = await addContactWithPhones({ variables });
-    
-        if (response.data && response.data.insert_contact) {
-          setShowSuccessAddMessage(true);
-          resetForm();
-          client.resetStore();
-          setTimeout(() => {
-            setShowSuccessAddMessage(false);
-          }, 5000);
+        // Edit contact first name and last name
+        const editContactResponse = await editContact({
+          variables: {
+            id: parseInt(id || '0'),
+            _set: {
+              first_name: firstName,
+              last_name: lastName
+            },
+          },
+        });
 
-          console.log("Contact has been Added");
+        if (editContactResponse.data && editContactResponse.data.update_contact_by_pk) {
+          console.log('Contact has been updated');
         } else {
-          console.error("Error adding contact:", response.errors);
+          console.error('Error updating contact');
         }
+
+        await Promise.all(
+          phoneNumbers.map(async (phoneNumber, index) => {
+            const editPhoneNumberResponse = await editPhoneNumber({
+              variables: {
+                pk_columns: {
+                  number: oldPhoneNumbers[index],
+                  contact_id: parseInt(id || '0')
+                },
+                new_phone_number: phoneNumber,
+              },
+            });
+
+            if (editPhoneNumberResponse.data && editPhoneNumberResponse.data.update_phone_by_pk) {
+              console.log(`Phone number ${phoneNumber} has been updated`);
+            } else {
+              console.error(`Error updating phone number ${phoneNumber}`);
+            }
+          })
+        );
+        
+        setShowSuccessEditMessage(true);
+        resetForm();
+        client.resetStore();
+        setTimeout(() => {
+            setShowSuccessEditMessage(false);
+        }, 5000);
       } catch (error) {
-        console.error("An error occurred:", error);
+        console.error('An error occurred:', error);
       }
     }
   };
 
   const resetForm = () => {
-    setFirstName('');
     setFirstNameTouched(false);
-    setLastName('');
     setLastNameTouched(false);
-    setPhoneNumbers(['']);
     setPhoneNumbersTouched(Array(phoneNumbers.length).fill(false));
     setFieldErrors({
       firstName: '',
@@ -372,6 +369,8 @@ function AddContact() {
       phoneNumbers: [''],
     });
   };  
+
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div css={containerStyle}>
@@ -383,7 +382,7 @@ function AddContact() {
             onClick={() => client.resetStore()}
           />
         </Link>
-        <div css={titleStyle}>Add Contact</div>
+        <div css={titleStyle}>Edit Contact</div>
         <div css={fieldStyle}>
           <div css={labelStyle}>First Name</div>
           <div                 
@@ -461,14 +460,6 @@ function AddContact() {
                   e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
                 }}
               />
-              {index > 0 && (
-                <FontAwesomeIcon
-                  icon={faCircleXmark}
-                  css={deleteIconStyle}
-                  onClick={() => removePhoneNumberInput(index)}
-                  onMouseDown={(e) => e.preventDefault()}
-                />
-              )}
             </div>
             <div css={errorCounterStyle}>
               <div css={errorStyle}>{fieldErrors.phoneNumbers[index]}</div>
@@ -476,23 +467,15 @@ function AddContact() {
                 {phoneNumber.length}/15
               </div>
             </div>
-            {showDeleteInputMessage && (
-              <div css={popUpMessageStyle}>
-                A Phone Number field has been deleted
-              </div>
-            )}
           </div>
         ))}
-        <div css={addMorePhoneNumberStyle} onClick={addPhoneNumberInput}>
-          <FontAwesomeIcon icon={faCirclePlus} css={addMorePhoneNumberIconStyle} />
-        </div>
 
         <div css={isSaveButtonDisabled ? disabledSaveButtonStyle : saveButtonStyle} onClick={() => handleSaveButtonClick()} onMouseDown={(e) => e.preventDefault()}>
           Save
         </div>
-        {showSuccessAddMessage && (
+        {showSuccessEditMessage && (
           <div css={popUpMessageStyle}>
-            Contact has been added
+            Contact has been edited
           </div>
         )}
       </div>
@@ -500,4 +483,4 @@ function AddContact() {
   );
 }
 
-export default AddContact;
+export default ContactDetail;

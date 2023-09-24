@@ -6,6 +6,7 @@ import ContactList from './components/ContactList';
 import AddContact from './components/AddContact';
 import { loadErrorMessages, loadDevMessages } from "@apollo/client/dev";
 import { css } from '@emotion/react';
+import ContactDetail from './components/ContactDetail';
 
 if (process.env.NODE_ENV !== "production") {
   loadDevMessages();
@@ -24,6 +25,7 @@ function App() {
         <h1 css={titleStyle}>Sendiawan Muljono's Phone Book</h1>
         <Routes>
           <Route path="/phone-book-sendiawan-muljono/add" element={<AddContact />} />
+          <Route path="/phone-book-sendiawan-muljono/:id" element={<ContactDetail />} />
           <Route path="/phone-book-sendiawan-muljono" element={<ContactList />} />
           <Route path="/" element={<Navigate to="/phone-book-sendiawan-muljono" />} />
         </Routes>

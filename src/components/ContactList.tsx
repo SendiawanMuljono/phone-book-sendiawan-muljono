@@ -6,7 +6,7 @@ import { DeleteContactPhone } from '../graphql/mutations/delete-contact-phone';
 import { css } from '@emotion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faCaretLeft, faCaretRight, faPlus, faCircleXmark, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const container = css`
   margin: 10px;
@@ -16,6 +16,7 @@ const contactBoxStyle = css`
   border: 1px solid #ccc;
   padding: 10px;
   margin-bottom: 10px;
+  cursor: pointer;
 `;
 
 const nameStyle = css`
@@ -142,6 +143,7 @@ const deleteMessageStyle = css`
 `
 
 function ContactList() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
@@ -202,7 +204,8 @@ function ContactList() {
     }
   }, [data]);
 
-  const handleLeftArrowClick = (contactIndex: number) => {
+  const handleLeftArrowClick = (contactIndex: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     setPhoneIndexes((prevIndexes) => {
       const totalPhones = data.contact[contactIndex].phones.length;
       const newIndex = (prevIndexes[contactIndex] - 1 + totalPhones) % totalPhones;
@@ -214,7 +217,8 @@ function ContactList() {
     });
   };
 
-  const handleRightArrowClick = (contactIndex: number) => {
+  const handleRightArrowClick = (contactIndex: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     setPhoneIndexes((prevIndexes) => {
       const totalPhones = data.contact[contactIndex].phones.length;
       const newIndex = (prevIndexes[contactIndex] + 1) % totalPhones;
@@ -235,7 +239,8 @@ function ContactList() {
   const [showDeleteMessage, setShowDeleteMessage] = useState(false);
   
   const client = useApolloClient();
-  const handleContactDeletion = async (contactId: number) => {
+  const handleContactDeletion = async (contactId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
     console.log("Deleting contact:", contactId);
     try {
       await deleteContactPhone({
@@ -251,6 +256,10 @@ function ContactList() {
     } catch (error) {
       console.error("Error deleting contact:", error);
     }
+  };
+  
+  const navigateToContactDetail = (contactId: number) => {
+    navigate(`/phone-book-sendiawan-muljono/${contactId}`);
   };
 
   if (error) return <p>Error: {error.message}</p>;
@@ -270,7 +279,7 @@ function ContactList() {
       {loading ? (<p>Loading...</p>) : (
         <div>
           {data.contact.map((contact: any, contactIndex: number) => (
-            <div key={contact.id} css={contactBoxStyle}>
+            <div key={contact.id} css={contactBoxStyle} onClick={() => navigateToContactDetail(contact.id)}>
               <div css={nameStyle}>
                 <div></div>
                 <div>
@@ -281,7 +290,7 @@ function ContactList() {
                   <FontAwesomeIcon
                     icon={faCircleXmark}
                     css={deleteIconStyle}
-                    onClick={() => handleContactDeletion(contact.id)}
+                    onClick={(e) => handleContactDeletion(contact.id, e)}
                     onMouseDown={(e) => e.preventDefault()}
                   />
                 </div>
@@ -297,7 +306,7 @@ function ContactList() {
                 {contact.phones.length > 1 && (
                   <div
                     css={arrowStyle}
-                    onClick={() => handleLeftArrowClick(contactIndex)}
+                    onClick={(e) => handleLeftArrowClick(contactIndex, e)}
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <FontAwesomeIcon icon={faCaretLeft} />
@@ -310,7 +319,7 @@ function ContactList() {
                 {contact.phones.length > 1 && (
                   <div
                     css={arrowStyle}
-                    onClick={() => handleRightArrowClick(contactIndex)}
+                    onClick={(e) => handleRightArrowClick(contactIndex, e)}
                     onMouseDown={(e) => e.preventDefault()}
                   >
                     <FontAwesomeIcon icon={faCaretRight} />
