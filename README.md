@@ -1,4 +1,4 @@
-############################################################ Phone Book App - Sendiawan Muljono ############################################################
+###### Phone Book App - Sendiawan Muljono ######
 Deployed application: https://sendiawanmuljono.github.io/phone-book-sendiawan-muljono/
 **Note: since it is instructed that UI/UX should be **mobile-first**, then you may try it by pressing F12 and choose the dimension of mobile phones as you prefer
 
