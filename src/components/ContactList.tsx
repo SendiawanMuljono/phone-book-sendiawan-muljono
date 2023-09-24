@@ -276,7 +276,6 @@ function ContactList() {
     } else {
       favoriteContactIds.add(contactId);
     }
-    // Force a re-render by changing the state
     setFavoriteToggle(!favoriteToggle);
   };
 
