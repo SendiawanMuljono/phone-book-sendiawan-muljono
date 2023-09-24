@@ -5,7 +5,8 @@ import { GetContactList } from '../graphql/queries/get-contact-list';
 import { DeleteContactPhone } from '../graphql/mutations/delete-contact-phone';
 import { css } from '@emotion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPhone, faCaretLeft, faCaretRight, faPlus, faCircleXmark, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faPhone, faCaretLeft, faCaretRight, faPlus, faCircleXmark, faSearch, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faStar as regStar } from '@fortawesome/free-regular-svg-icons';
 import { Link, useNavigate } from 'react-router-dom';
 
 const container = css`
@@ -142,6 +143,11 @@ const deleteMessageStyle = css`
   zIndex: 99999;
 `
 
+const starStyle = css`
+  color: #f7c653;
+  cursor: pointer;
+`
+const favoriteContactIds = new Set();
 function ContactList() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -262,6 +268,18 @@ function ContactList() {
     navigate(`/phone-book-sendiawan-muljono/${contactId}`);
   };
 
+  const [favoriteToggle, setFavoriteToggle] = useState(false);
+  const handleFavoriteToggle = (contactId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (favoriteContactIds.has(contactId)) {
+      favoriteContactIds.delete(contactId);
+    } else {
+      favoriteContactIds.add(contactId);
+    }
+    // Force a re-render by changing the state
+    setFavoriteToggle(!favoriteToggle);
+  };
+
   if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -278,13 +296,73 @@ function ContactList() {
       </div>
       {loading ? (<p>Loading...</p>) : (
         <div>
-          {data.contact.map((contact: any, contactIndex: number) => (
+          {/* modify here */}
+          {data.contact.filter((contact: any) => favoriteContactIds.has(contact.id)).map((contact: any, contactIndex: number) => (
             <div key={contact.id} css={contactBoxStyle} onClick={() => navigateToContactDetail(contact.id)}>
               <div css={nameStyle}>
                 <div></div>
                 <div>
-                  {contact.first_name} {contact.last_name}
-                  {/* tambahin icon favorit nanti disini */}
+                  {contact.first_name} {contact.last_name}&nbsp;
+                  <FontAwesomeIcon
+                    icon={favoriteContactIds.has(contact.id) ? faStar : regStar}
+                    css={starStyle}
+                    onClick={(e) => handleFavoriteToggle(contact.id, e)}
+                  />
+                </div>
+                <div>
+                  <FontAwesomeIcon
+                    icon={faCircleXmark}
+                    css={deleteIconStyle}
+                    onClick={(e) => handleContactDeletion(contact.id, e)}
+                    onMouseDown={(e) => e.preventDefault()}
+                  />
+                </div>
+              </div>
+              <div
+                css={[
+                  phoneListStyle,
+                  contact.phones.length === 1 && {
+                    justifyContent: 'center',
+                  },
+                ]}
+              >
+                {contact.phones.length > 1 && (
+                  <div
+                    css={arrowStyle}
+                    onClick={(e) => handleLeftArrowClick(contactIndex, e)}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <FontAwesomeIcon icon={faCaretLeft} />
+                  </div>
+                )}
+                <div>
+                  <FontAwesomeIcon icon={faPhone} />&nbsp;
+                  {phoneIndexes[contactIndex] === 0 ? contact.phones[phoneIndexes[contactIndex]]?.number + ' (main)' : contact.phones[phoneIndexes[contactIndex]]?.number}
+                </div>
+                {contact.phones.length > 1 && (
+                  <div
+                    css={arrowStyle}
+                    onClick={(e) => handleRightArrowClick(contactIndex, e)}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <FontAwesomeIcon icon={faCaretRight} />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {/* until here */}
+          {data.contact.filter((contact: any) => !favoriteContactIds.has(contact.id)).map((contact: any, contactIndex: number) => (
+            <div key={contact.id} css={contactBoxStyle} onClick={() => navigateToContactDetail(contact.id)}>
+              <div css={nameStyle}>
+                <div></div>
+                <div>
+                  {contact.first_name} {contact.last_name}&nbsp;
+                  <FontAwesomeIcon
+                    icon={favoriteContactIds.has(contact.id) ? faStar : regStar}
+                    css={starStyle}
+                    onClick={(e) => handleFavoriteToggle(contact.id, e)}
+                  />
                 </div>
                 <div>
                   <FontAwesomeIcon
