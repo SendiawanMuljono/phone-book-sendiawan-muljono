@@ -290,7 +290,7 @@ function ContactList() {
           css={searchInputStyle}
           placeholder="Search in PhoneBook"
           value={searchInput}
-          onChange={handleSearchInputChange}
+          onChange={(e) => handleSearchInputChange(e)}
         />
       </div>
       {loading ? (<p>Loading...</p>) : (
@@ -303,7 +303,7 @@ function ContactList() {
                 <div>
                   {contact.first_name} {contact.last_name}&nbsp;
                   <FontAwesomeIcon
-                    icon={favoriteContactIds.has(contact.id) ? faStar : regStar}
+                    icon={faStar}
                     css={starStyle}
                     onClick={(e) => handleFavoriteToggle(contact.id, e)}
                   />
@@ -358,7 +358,7 @@ function ContactList() {
                 <div>
                   {contact.first_name} {contact.last_name}&nbsp;
                   <FontAwesomeIcon
-                    icon={favoriteContactIds.has(contact.id) ? faStar : regStar}
+                    icon={regStar}
                     css={starStyle}
                     onClick={(e) => handleFavoriteToggle(contact.id, e)}
                   />
